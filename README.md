@@ -4,7 +4,7 @@ Full-stack aplikacija za bilježenje sportskih aktivnosti — trčanje, hodanje,
 biciklizam, teretana, plivanje i dnevni koraci. Svaka aktivnost pretvara se u
 jedinstveni bodovni rezultat, korisnici se rangiraju na globalnoj ljestvici, a
 svaki korisnik ima osobni dashboard s grafovima aktivnosti kroz vrijeme i
-razbivkom po sportovima.
+udjelom aktivnosti po sportovima.
 
 - **Backend:** C# / ASP.NET Core Web API (.NET 8), Entity Framework Core, SQLite
 - **Frontend:** Angular 18, Chart.js
