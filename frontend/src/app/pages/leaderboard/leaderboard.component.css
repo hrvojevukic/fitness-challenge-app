@@ -1,0 +1,57 @@
+.table-card {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.95rem;
+}
+
+.leaderboard-table thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+}
+
+.leaderboard-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.leaderboard-table tbody tr:hover {
+  background: rgba(52, 84, 209, 0.04);
+}
+
+.leaderboard-table tbody tr.row-link {
+  cursor: pointer;
+}
+
+.leaderboard-table tbody tr.row-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.col-rank {
+  width: 4.5rem;
+  font-weight: 700;
+}
+
+.col-points {
+  width: 7rem;
+  font-weight: 700;
+}
+
+.col-trend {
+  width: 10rem;
+}

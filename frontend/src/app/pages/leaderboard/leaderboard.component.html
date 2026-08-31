@@ -1,0 +1,49 @@
+<section>
+  <h1>Global Leaderboard</h1>
+  <p>Ranked by total accumulated points across all activities</p>
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="card">Loading leaderboard…</div>
+  } @else if (entries().length === 0) {
+    <div class="card">No users yet. Register a user and log an activity to get started.</div>
+  } @else {
+    <div class="card table-card">
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th class="col-rank">Rank</th>
+            <th>Name</th>
+            <th class="col-points">Points</th>
+            <th class="col-trend">Trend</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of entries(); track entry.userId) {
+            <tr
+              class="row-link"
+              tabindex="0"
+              role="link"
+              [attr.aria-label]="'Open ' + entry.fullName + '\'s dashboard'"
+              (click)="openDashboard(entry.userId)"
+              (keydown.enter)="openDashboard(entry.userId)"
+              (keydown.space)="$event.preventDefault(); openDashboard(entry.userId)"
+            >
+              <td class="col-rank">#{{ entry.rank }}</td>
+              <td>
+                <a [routerLink]="['/dashboard', entry.userId]" (click)="$event.stopPropagation()">{{ entry.fullName }}</a>
+              </td>
+              <td class="col-points">{{ entry.totalPoints }}</td>
+              <td class="col-trend">
+                <span class="badge" [class]="'badge-' + entry.trend">{{ trendLabel(entry) }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

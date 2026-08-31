@@ -1,0 +1,27 @@
+<section>
+  <h1>My Profile</h1>
+  <p>Your account and personal dashboard</p>
+
+  <div class="card account-card">
+    <div class="account-info">
+      <span class="account-name">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+    </div>
+    <button type="button" class="btn btn-secondary" (click)="logout()">Log out</button>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error" style="margin-top: 1rem">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="card" style="margin-top: 1rem">Loading…</div>
+  }
+
+  @if (dashboard(); as d) {
+    <app-dashboard-view
+      [dashboard]="d"
+      [canDelete]="true"
+      (activityDeleted)="onActivityDeleted($event)"
+    ></app-dashboard-view>
+  }
+</section>

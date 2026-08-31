@@ -1,0 +1,86 @@
+<section class="narrow">
+  <h1>
+    Log Activity
+    <button
+      type="button"
+      class="info-btn"
+      (click)="scoringInfo.showModal()"
+      aria-label="How points are calculated"
+      title="How points are calculated"
+    >i</button>
+  </h1>
+  <p>Submit a fitness entry for <strong>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</strong>.</p>
+
+  <div class="card">
+    @if (error()) {
+      <div class="alert alert-error">{{ error() }}</div>
+    }
+    @if (logged(); as a) {
+      <div class="alert alert-success">
+        Logged! Awarded <strong>{{ a.points }}</strong> point{{ a.points === 1 ? '' : 's' }}.
+      </div>
+    }
+
+    <form (ngSubmit)="submit()">
+      <div class="form-field">
+        <label for="datetime">Date &amp; time</label>
+        <input id="datetime" name="datetime" type="datetime-local" [(ngModel)]="datetime" required />
+      </div>
+
+      <div class="form-field">
+        <label for="sport">Sport</label>
+        <select id="sport" name="sport" [(ngModel)]="sport" (ngModelChange)="onSportChange()">
+          <option value="">Daily Steps</option>
+          @for (s of sports; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </div>
+
+      @switch (metricKind()) {
+        @case ('distance') {
+          <div class="form-field">
+            <label for="distance">Distance (km)</label>
+            <input id="distance" name="distance" type="number" min="0" step="0.001" [(ngModel)]="distance" required />
+          </div>
+        }
+        @case ('duration') {
+          <div class="form-field">
+            <label for="duration">Duration (minutes:seconds)</label>
+            <input id="duration" name="duration" type="text" placeholder="12:34" pattern="^\d+:[0-5]\d$" [(ngModel)]="duration" required />
+          </div>
+        }
+        @case ('steps') {
+          <div class="form-field">
+            <label for="steps">Steps</label>
+            <input id="steps" name="steps" type="number" min="0" step="1" [(ngModel)]="steps" required />
+          </div>
+        }
+      }
+
+      <button class="btn" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Logging…' : 'Log Activity' }}
+      </button>
+    </form>
+  </div>
+
+  <dialog #scoringInfo class="info-dialog">
+    <h2>How points are calculated</h2>
+    <ul>
+      <li><strong>Running</strong> — 100 points per km</li>
+      <li><strong>Walking</strong> — 50 points per km</li>
+      <li><strong>Cycling</strong> — 25 points per km</li>
+      <li><strong>Swimming</strong> — 15 points per minute</li>
+      <li><strong>Gym</strong> — 5 points per minute</li>
+      <li><strong>Daily Steps</strong> — 1 point per 100 steps</li>
+    </ul>
+    <p class="info-note">
+      Distances round down to a whole point.
+      Durations count whole completed minutes only. 
+      Steps round down to the nearest 100 before scoring.
+    </p>
+    <form method="dialog">
+      <button class="btn" type="submit">Got it</button>
+    </form>
+  </dialog>
+</section>

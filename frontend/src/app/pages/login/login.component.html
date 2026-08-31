@@ -1,0 +1,26 @@
+<section class="narrow">
+  <h1>Log In</h1>
+  <p>Enter the first and last name you registered with.</p>
+
+  <div class="card">
+    @if (error()) {
+      <div class="alert alert-error">{{ error() }}</div>
+    }
+
+    <form (ngSubmit)="submit()">
+      <div class="form-field">
+        <label for="firstName">First name</label>
+        <input id="firstName" name="firstName" type="text" [(ngModel)]="firstName" required autocomplete="given-name" />
+      </div>
+      <div class="form-field">
+        <label for="lastName">Last name</label>
+        <input id="lastName" name="lastName" type="text" [(ngModel)]="lastName" required autocomplete="family-name" />
+      </div>
+      <button class="btn" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Logging in…' : 'Log In' }}
+      </button>
+    </form>
+
+    <p class="hint">Not registered yet? <a routerLink="/register">Create an account</a>.</p>
+  </div>
+</section>

@@ -1,0 +1,24 @@
+<section class="narrow">
+  <h1>Register User</h1>
+  <p>Create a new participant. First and last name must be unique together. You'll be logged in automatically.</p>
+
+  <div class="card">
+    @if (error()) {
+      <div class="alert alert-error">{{ error() }}</div>
+    }
+
+    <form (ngSubmit)="submit()">
+      <div class="form-field">
+        <label for="firstName">First name</label>
+        <input id="firstName" name="firstName" type="text" [(ngModel)]="firstName" required autocomplete="given-name" />
+      </div>
+      <div class="form-field">
+        <label for="lastName">Last name</label>
+        <input id="lastName" name="lastName" type="text" [(ngModel)]="lastName" required autocomplete="family-name" />
+      </div>
+      <button class="btn" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Registering…' : 'Register' }}
+      </button>
+    </form>
+  </div>
+</section>

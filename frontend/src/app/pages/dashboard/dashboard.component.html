@@ -1,0 +1,35 @@
+<section>
+  <h1>Personal Dashboard</h1>
+  <p>Activity history and sport breakdown for a single user</p>
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  <div class="user-picker card">
+    <div class="form-field" style="margin-bottom: 0">
+      <label for="user-select">Viewing</label>
+      @if (users().length === 0) {
+        <span>No users registered yet — <a routerLink="/register">register one</a>.</span>
+      } @else {
+        <select id="user-select" (change)="onUserPicked($event)">
+          @for (user of users(); track user.id) {
+            <option [value]="user.id" [selected]="user.id === selectedUserId()">{{ user.firstName }} {{ user.lastName }}</option>
+          }
+        </select>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="card" style="margin-top: 1rem">Loading…</div>
+  }
+
+  @if (dashboard(); as d) {
+    <app-dashboard-view
+      [dashboard]="d"
+      [canDelete]="canDelete()"
+      (activityDeleted)="onActivityDeleted($event)"
+    ></app-dashboard-view>
+  }
+</section>

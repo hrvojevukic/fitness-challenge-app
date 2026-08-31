@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fitness Challenge</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('fc.theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+        var steps = [0.75, 1, 1.15, 1.3];
+        var i = parseInt(localStorage.getItem('fc.fontStep2'), 10);
+        if (isNaN(i) || i < 0 || i >= steps.length) { i = 1; }
+        document.documentElement.style.setProperty('--font-scale', String(steps[i]));
+      } catch (e) {
+        void e;
+      }
+    })();
+  </script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

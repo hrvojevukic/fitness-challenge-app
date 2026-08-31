@@ -1,0 +1,53 @@
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand">Fitness Challenge</div>
+    <nav class="app-nav">
+      <a routerLink="/leaderboard" routerLinkActive="active">Leaderboard</a>
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      @if (isLoggedIn()) {
+        <a routerLink="/log-activity" routerLinkActive="active">Log Activity</a>
+        <a routerLink="/profile" routerLinkActive="active">My Profile</a>
+      }
+    </nav>
+    <div class="app-account">
+      <div class="app-prefs" role="group" aria-label="Display preferences">
+        <button
+          type="button"
+          class="prefs-btn"
+          (click)="theme.decreaseFont()"
+          [disabled]="theme.fontStep() === 0"
+          title="Smaller text"
+          aria-label="Decrease text size"
+        >A&minus;</button>
+        <button
+          type="button"
+          class="prefs-btn"
+          (click)="theme.increaseFont()"
+          [disabled]="theme.fontStep() === theme.maxFontStep"
+          title="Larger text"
+          aria-label="Increase text size"
+        >A+</button>
+        <button
+          type="button"
+          class="prefs-btn"
+          (click)="theme.toggleTheme()"
+          [attr.aria-pressed]="theme.theme() === 'dark'"
+          [title]="theme.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+          aria-label="Toggle dark mode"
+        >{{ theme.theme() === 'dark' ? '☀' : '☾' }}</button>
+      </div>
+
+      @if (isLoggedIn()) {
+        <a class="who" routerLink="/profile">Hi, {{ currentUser()?.firstName }}</a>
+        <button type="button" class="link-btn" (click)="logout()">Log out</button>
+      } @else {
+        <a routerLink="/register" routerLinkActive="active">Register</a>
+        <a routerLink="/login" routerLinkActive="active">Log in</a>
+      }
+    </div>
+  </header>
+
+  <main class="app-main">
+    <router-outlet></router-outlet>
+  </main>
+</div>

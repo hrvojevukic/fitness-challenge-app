@@ -1,0 +1,7 @@
+.user-picker select {
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 0.95rem;
+  min-width: 220px;
+}
