@@ -1,13 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { ChartData, TooltipItem } from 'chart.js';
+import { Subscription } from 'rxjs';
+import { Activity } from '../../models/activity.model';
 import { Dashboard, DailyVolume } from '../../models/dashboard.model';
+import { Page } from '../../models/page.model';
+import { ActivityService } from '../../services/activity.service';
 import { ThemeService } from '../../services/theme.service';
 import { ChartComponent } from '../chart/chart.component';
 import { ACCENT, colorForLabel } from '../chart/chart-palette';
+import { PagerComponent } from '../pager/pager.component';
 
 const DAY_MS = 86_400_000;
 const MAX_TIMELINE_DAYS = 60;
+const HISTORY_PAGE_SIZE = 10;
 
 const CHART_INK = {
   light: { label: '#898781', grid: '#e1e0d9', legend: '#52514e', segmentBorder: '#fcfcfb' },
@@ -17,7 +23,7 @@ const CHART_INK = {
 @Component({
   selector: 'app-dashboard-view',
   standalone: true,
-  imports: [CommonModule, ChartComponent],
+  imports: [CommonModule, ChartComponent, PagerComponent],
   templateUrl: './dashboard-view.component.html',
   styleUrl: './dashboard-view.component.css',
 })
@@ -26,8 +32,25 @@ export class DashboardViewComponent {
   canDelete = input(false);
   activityDeleted = output<number>();
 
+  history = signal<Page<Activity> | null>(null);
+  historyPage = signal(1);
+  historyError = signal(false);
+
+  private activityService = inject(ActivityService);
   private themeService = inject(ThemeService);
+  private historySubscription?: Subscription;
+  private historyUserId?: number;
   private ink = computed(() => CHART_INK[this.themeService.theme()]);
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.historySubscription?.unsubscribe());
+
+    effect(() => {
+      const dashboard = this.dashboard();
+      const page = this.historyPage();
+      untracked(() => this.loadHistory(dashboard.userId, page));
+    });
+  }
 
   private volumeTimeline = computed(() => {
     const d = this.dashboard();
@@ -165,7 +188,31 @@ export class DashboardViewComponent {
     };
   });
 
-  requestDelete(activity: Dashboard['activities'][number]): void {
+  private loadHistory(userId: number, page: number): void {
+    if (userId !== this.historyUserId) {
+      this.historyUserId = userId;
+      this.history.set(null);
+      if (page !== 1) {
+        this.historyPage.set(1);
+        return;
+      }
+    }
+
+    this.historySubscription?.unsubscribe();
+    this.historySubscription = this.activityService.getForUser(userId, page, HISTORY_PAGE_SIZE).subscribe({
+      next: (result) => {
+        this.historyError.set(false);
+        if (result.items.length === 0 && page > 1) {
+          this.historyPage.set(Math.max(result.totalPages, 1));
+          return;
+        }
+        this.history.set(result);
+      },
+      error: () => this.historyError.set(true),
+    });
+  }
+
+  requestDelete(activity: Activity): void {
     const what = `${this.formatLabel(activity.sport ?? 'Daily Steps')} · ${this.formatValue(activity)}`;
     if (confirm(`Delete this activity?\n\n${what}\n\nThis can't be undone.`)) {
       this.activityDeleted.emit(activity.id);
@@ -176,7 +223,7 @@ export class DashboardViewComponent {
     return label === 'Daily Steps' ? label : label.charAt(0).toUpperCase() + label.slice(1);
   }
 
-  formatValue(activity: Dashboard['activities'][number]): string {
+  formatValue(activity: Activity): string {
     if (activity.distance != null) {
       return `${activity.distance} km`;
     }

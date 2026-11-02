@@ -1,6 +1,6 @@
-using System.Security.Claims;
-using FitnessChallenge.Api.Dtos;
-using FitnessChallenge.Api.Services;
+using FitnessChallenge.Api.Extensions;
+using FitnessChallenge.Application.Dtos;
+using FitnessChallenge.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +9,7 @@ namespace FitnessChallenge.Api.Controllers;
 [ApiController]
 [Route("api/me")]
 [Authorize]
+[Produces("application/json")]
 public class MeController : ControllerBase
 {
     private readonly IDashboardService _dashboardService;
@@ -18,15 +19,13 @@ public class MeController : ControllerBase
         _dashboardService = dashboardService;
     }
 
+    /// <summary>Returns the signed-in user's dashboard.</summary>
     [HttpGet("dashboard")]
+    [ProducesResponseType<DashboardResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DashboardResponseDto>> GetDashboard()
     {
-        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-        {
-            return Unauthorized();
-        }
-
-        var dashboard = await _dashboardService.BuildForUserAsync(userId);
-        return dashboard is null ? NotFound() : Ok(dashboard);
+        return Ok(await _dashboardService.BuildForUserAsync(User.GetUserId()));
     }
 }

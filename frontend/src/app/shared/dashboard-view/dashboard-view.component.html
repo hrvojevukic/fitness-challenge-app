@@ -6,7 +6,7 @@
     </div>
     <div class="card stat-tile">
       <span class="stat-label">Activities logged</span>
-      <span class="stat-value">{{ d.activities.length }}</span>
+      <span class="stat-value">{{ d.activityCount }}</span>
     </div>
   </div>
 
@@ -47,43 +47,48 @@
 
   <div class="card table-card">
     <h3 style="padding: 1rem 1rem 0">Activity history</h3>
-    @if (d.activities.length === 0) {
+    @if (historyError()) {
+      <p style="padding: 0 1rem 1rem">Could not load the activity history.</p>
+    } @else if (d.activityCount === 0) {
       <p style="padding: 0 1rem 1rem">No activities logged yet.</p>
     } @else {
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Sport</th>
-            <th>Value</th>
-            <th>Points</th>
-            @if (canDelete()) {
-              <th class="col-actions"><span class="visually-hidden">Actions</span></th>
-            }
-          </tr>
-        </thead>
-        <tbody>
-          @for (activity of d.activities; track activity.id) {
+      @if (history(); as h) {
+        <table class="history-table">
+          <thead>
             <tr>
-              <td>{{ activity.datetime | date: 'medium' }}</td>
-              <td>{{ formatLabel(activity.sport ?? 'Daily Steps') }}</td>
-              <td>{{ formatValue(activity) }}</td>
-              <td>{{ activity.points }}</td>
+              <th>Date</th>
+              <th>Sport</th>
+              <th>Value</th>
+              <th>Points</th>
               @if (canDelete()) {
-                <td class="col-actions">
-                  <button
-                    type="button"
-                    class="row-delete"
-                    (click)="requestDelete(activity)"
-                    aria-label="Delete this activity"
-                    title="Delete activity"
-                  >✕</button>
-                </td>
+                <th class="col-actions"><span class="visually-hidden">Actions</span></th>
               }
             </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (activity of h.items; track activity.id) {
+              <tr>
+                <td>{{ activity.datetime | date: 'medium' }}</td>
+                <td>{{ formatLabel(activity.sport ?? 'Daily Steps') }}</td>
+                <td>{{ formatValue(activity) }}</td>
+                <td>{{ activity.points }}</td>
+                @if (canDelete()) {
+                  <td class="col-actions">
+                    <button
+                      type="button"
+                      class="row-delete"
+                      (click)="requestDelete(activity)"
+                      aria-label="Delete this activity"
+                      title="Delete activity"
+                    >✕</button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+        <app-pager [page]="h.page" [totalPages]="h.totalPages" (pageChange)="historyPage.set($event)"></app-pager>
+      }
     }
   </div>
 }

@@ -1,105 +1,58 @@
-using FitnessChallenge.Api.Data;
-using FitnessChallenge.Api.Dtos;
-using FitnessChallenge.Api.Models;
-using FitnessChallenge.Api.Services;
+using FitnessChallenge.Application.Dtos;
+using FitnessChallenge.Application.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FitnessChallenge.Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
+[Produces("application/json")]
 public class UsersController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IUserService _userService;
     private readonly IDashboardService _dashboardService;
 
-    public UsersController(AppDbContext db, IDashboardService dashboardService)
+    public UsersController(IUserService userService, IDashboardService dashboardService)
     {
-        _db = db;
+        _userService = userService;
         _dashboardService = dashboardService;
     }
 
+    /// <summary>Registers a user. The first and last name must be unique together.</summary>
     [HttpPost]
-    public async Task<ActionResult<RegisterUserResponse>> Register(RegisterUserRequest request)
+    [ProducesResponseType<UserResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<UserResponse>> Register(RegisterUserRequest request)
     {
-        var firstName = request.FirstName?.Trim();
-        var lastName = request.LastName?.Trim();
-
-        if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
-        {
-            return ValidationProblem("firstName and lastName are both required.");
-        }
-
-        var alreadyExists = await _db.Users.AnyAsync(u =>
-            u.FirstName.ToLower() == firstName.ToLower() && u.LastName.ToLower() == lastName.ToLower());
-
-        if (alreadyExists)
-        {
-            return Conflict(new { message = $"A user named '{firstName} {lastName}' is already registered." });
-        }
-
-        var user = new User { FirstName = firstName, LastName = lastName };
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
-
-        var response = ToResponse(user);
-        return CreatedAtAction(nameof(GetById), new { id = user.Id }, response);
+        var user = await _userService.RegisterAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
 
+    /// <summary>Returns one page of users, ordered by name.</summary>
     [HttpGet]
-    public async Task<ActionResult<List<RegisterUserResponse>>> GetAll()
+    [ProducesResponseType<PagedResult<UserResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PagedResult<UserResponse>>> GetPage([FromQuery] PageQuery paging)
     {
-        var users = await _db.Users
-            .OrderBy(u => u.FirstName)
-            .ThenBy(u => u.LastName)
-            .ToListAsync();
-
-        var response = new List<RegisterUserResponse>();
-        foreach (var user in users)
-        {
-            response.Add(ToResponse(user));
-        }
-
-        return Ok(response);
+        return Ok(await _userService.GetPageAsync(paging));
     }
 
+    /// <summary>Returns one user.</summary>
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<RegisterUserResponse>> GetById(int id)
+    [ProducesResponseType<UserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<UserResponse>> GetById(int id)
     {
-        var user = await _db.Users.FindAsync(id);
-        if (user is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(ToResponse(user));
+        return Ok(await _userService.GetByIdAsync(id));
     }
 
+    /// <summary>Returns a user's total points, sport breakdown and daily activity volume.</summary>
     [HttpGet("{id:int}/dashboard")]
+    [ProducesResponseType<DashboardResponseDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DashboardResponseDto>> GetDashboard(int id)
     {
-        var dashboard = await _dashboardService.BuildForUserAsync(id);
-        if (dashboard is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(dashboard);
-    }
-
-    private static RegisterUserResponse ToResponse(User user)
-    {
-        return new RegisterUserResponse
-        {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-        };
-    }
-
-    private ActionResult ValidationProblem(string message)
-    {
-        return BadRequest(new ProblemDetails { Title = "Invalid request", Detail = message, Status = 400 });
+        return Ok(await _dashboardService.BuildForUserAsync(id));
     }
 }

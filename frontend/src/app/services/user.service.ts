@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../core/api-config';
 import { Dashboard } from '../models/dashboard.model';
+import { Page } from '../models/page.model';
 import { User } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
@@ -14,8 +15,8 @@ export class UserService {
     return this.http.post<User>(this.base, { firstName, lastName });
   }
 
-  getAll(): Observable<User[]> {
-    return this.http.get<User[]>(this.base);
+  getPage(page: number, pageSize: number): Observable<Page<User>> {
+    return this.http.get<Page<User>>(this.base, { params: { page, pageSize } });
   }
 
   getDashboard(userId: number): Observable<Dashboard> {

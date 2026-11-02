@@ -1,78 +1,40 @@
-using System.Security.Claims;
-using FitnessChallenge.Api.Data;
-using FitnessChallenge.Api.Dtos;
-using FitnessChallenge.Api.Services;
+using FitnessChallenge.Api.Extensions;
+using FitnessChallenge.Application.Dtos;
+using FitnessChallenge.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FitnessChallenge.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
+[Produces("application/json")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _db;
-    private readonly ITokenService _tokenService;
+    private readonly IAuthService _authService;
 
-    public AuthController(AppDbContext db, ITokenService tokenService)
+    public AuthController(IAuthService authService)
     {
-        _db = db;
-        _tokenService = tokenService;
+        _authService = authService;
     }
 
+    /// <summary>Signs in a registered user by first and last name and returns a bearer token.</summary>
     [HttpPost("login")]
+    [ProducesResponseType<LoginResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<LoginResponse>> Login(LoginRequest request)
     {
-        var firstName = request.FirstName?.Trim();
-        var lastName = request.LastName?.Trim();
-
-        if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
-        {
-            return BadRequest(new ProblemDetails
-            {
-                Title = "Invalid request",
-                Detail = "firstName and lastName are both required.",
-                Status = 400,
-            });
-        }
-
-        var user = await _db.Users.FirstOrDefaultAsync(u =>
-            u.FirstName.ToLower() == firstName.ToLower() && u.LastName.ToLower() == lastName.ToLower());
-
-        if (user is null)
-        {
-            return Unauthorized(new ProblemDetails
-            {
-                Title = "Login failed",
-                Detail = $"No registered user named '{firstName} {lastName}'.",
-                Status = 401,
-            });
-        }
-
-        return Ok(new LoginResponse
-        {
-            Token = _tokenService.CreateToken(user),
-            User = new RegisterUserResponse { Id = user.Id, FirstName = user.FirstName, LastName = user.LastName },
-        });
+        return Ok(await _authService.LoginAsync(request));
     }
 
+    /// <summary>Returns the signed-in user.</summary>
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<RegisterUserResponse>> Me()
+    [ProducesResponseType<UserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<UserResponse>> Me()
     {
-        var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(idClaim, out var userId))
-        {
-            return Unauthorized();
-        }
-
-        var user = await _db.Users.FindAsync(userId);
-        if (user is null)
-        {
-            return Unauthorized();
-        }
-
-        return Ok(new RegisterUserResponse { Id = user.Id, FirstName = user.FirstName, LastName = user.LastName });
+        return Ok(await _authService.GetCurrentUserAsync(User.GetUserId()));
     }
 }

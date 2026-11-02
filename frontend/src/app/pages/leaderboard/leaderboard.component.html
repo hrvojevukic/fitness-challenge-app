@@ -44,6 +44,7 @@
           }
         </tbody>
       </table>
+      <app-pager [page]="page()" [totalPages]="totalPages()" (pageChange)="load($event)"></app-pager>
     </div>
   }
 </section>

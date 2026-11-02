@@ -1,5 +1,3 @@
-import { Activity } from './activity.model';
-
 export interface SportBreakdown {
   label: string;
   activityCount: number;
@@ -16,7 +14,7 @@ export interface Dashboard {
   userId: number;
   fullName: string;
   totalPoints: number;
-  activities: Activity[];
+  activityCount: number;
   sportBreakdown: SportBreakdown[];
   dailyVolume: DailyVolume[];
 }

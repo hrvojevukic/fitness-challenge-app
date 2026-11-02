@@ -1,22 +1,36 @@
 # Fitness Challenge
 
-Full-stack aplikacija za bilježenje sportskih aktivnosti — trčanje, hodanje,
-biciklizam, teretana, plivanje i dnevni koraci. Svaka aktivnost pretvara se u
-jedinstveni bodovni rezultat, korisnici se rangiraju na globalnoj ljestvici, a
-svaki korisnik ima osobni dashboard s grafovima aktivnosti kroz vrijeme i
-udjelom aktivnosti po sportovima.
+A full-stack application for tracking sports activities: running, walking,
+cycling, gym, swimming and daily steps. Each activity is converted into a unified
+points score, users are ranked on a global leaderboard, and every user has a
+personal dashboard with charts of their activity over time and their activity
+share by sport.
 
 - **Backend:** C# / ASP.NET Core Web API (.NET 8), Entity Framework Core, SQLite
 - **Frontend:** Angular 18, Chart.js
 
-## Preduvjeti
+## Project structure
+
+```
+backend/
+  src/
+    FitnessChallenge.Domain/          entities
+    FitnessChallenge.Application/     business logic (services), DTOs, interfaces
+    FitnessChallenge.Infrastructure/  EF Core, SQL queries, JWT token issuing
+    FitnessChallenge.Api/             controllers, middleware, OpenAPI
+  tests/
+    FitnessChallenge.Tests/           unit and integration tests
+frontend/                             Angular application
+```
+
+## Prerequisites
 
 - .NET 8 SDK
-- Node.js 18+ i npm
+- Node.js 18+ and npm
 
-## Pokretanje lokalno
+## Running locally
 
-Backend i frontend pokreću se u dva odvojena terminala.
+Run the backend and the frontend in two separate terminals.
 
 ### Backend
 
@@ -25,8 +39,8 @@ cd backend/src/FitnessChallenge.Api
 dotnet run
 ```
 
-Pokreće se na **http://localhost:5205**. Pri prvom pokretanju automatski kreira
-lokalnu `fitness.db` SQLite datoteku i puni je primjerom podataka.
+Runs on **http://localhost:5205**. On first run, it automatically creates a local
+`fitness.db` SQLite file and fills it with sample data.
 
 ### Frontend
 
@@ -36,10 +50,31 @@ npm install
 npm start
 ```
 
-Pokreće se na **http://localhost:4200**.
+Runs on **http://localhost:4200**.
 
-### Korištenje
+### Usage
 
-Otvori http://localhost:4200, registriraj korisnika pa se prijavi tim imenom i
-prezimenom. Nakon prijave možeš bilježiti aktivnosti. ljestvica i
-dashboard se osvježavaju kako se dodaju podaci.
+Open http://localhost:4200, register a user, then log in with that first and last
+name. Once logged in, you can log activities. The leaderboard and dashboard update
+as data is added.
+
+## API documentation
+
+While the backend is running, Swagger UI is available at
+**http://localhost:5205/swagger**. For protected endpoints, call
+`POST /api/auth/login` and paste the returned token under **Authorize**.
+
+Lists (`/api/leaderboard`, `/api/users`, `/api/activities`) are paginated with the
+`page` and `pageSize` parameters (up to 100 per page).
+
+## Tests
+
+```bash
+cd backend
+dotnet test
+```
+
+```bash
+cd frontend
+npm test -- --watch=false --browsers=ChromeHeadless
+```

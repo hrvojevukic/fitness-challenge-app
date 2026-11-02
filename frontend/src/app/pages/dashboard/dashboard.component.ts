@@ -9,6 +9,8 @@ import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/user.service';
 import { DashboardViewComponent } from '../../shared/dashboard-view/dashboard-view.component';
 
+const USER_PICKER_SIZE = 100;
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -32,8 +34,9 @@ export class DashboardComponent implements OnInit {
   readonly canDelete = computed(() => this.auth.currentUser()?.id === this.selectedUserId());
 
   ngOnInit(): void {
-    this.userService.getAll().subscribe({
-      next: (users) => {
+    this.userService.getPage(1, USER_PICKER_SIZE).subscribe({
+      next: (result) => {
+        const users = result.items;
         this.users.set(users);
         if (this.route.snapshot.paramMap.get('id') === null && this.selectedUserId() === null && users[0]) {
           this.selectUser(users[0].id);

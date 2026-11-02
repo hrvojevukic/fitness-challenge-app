@@ -3,11 +3,14 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { LeaderboardEntry } from '../../models/leaderboard.model';
 import { LeaderboardService } from '../../services/leaderboard.service';
+import { PagerComponent } from '../../shared/pager/pager.component';
+
+const PAGE_SIZE = 10;
 
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, PagerComponent],
   templateUrl: './leaderboard.component.html',
   styleUrl: './leaderboard.component.css',
 })
@@ -16,6 +19,8 @@ export class LeaderboardComponent implements OnInit {
   private router = inject(Router);
 
   entries = signal<LeaderboardEntry[]>([]);
+  page = signal(1);
+  totalPages = signal(0);
   loading = signal(true);
   error = signal<string | null>(null);
 
@@ -27,12 +32,14 @@ export class LeaderboardComponent implements OnInit {
     this.load();
   }
 
-  load(): void {
+  load(page = this.page()): void {
     this.loading.set(true);
     this.error.set(null);
-    this.leaderboardService.get().subscribe({
-      next: (entries) => {
-        this.entries.set(entries);
+    this.leaderboardService.get(page, PAGE_SIZE).subscribe({
+      next: (result) => {
+        this.entries.set(result.items);
+        this.page.set(result.page);
+        this.totalPages.set(result.totalPages);
         this.loading.set(false);
       },
       error: () => {
